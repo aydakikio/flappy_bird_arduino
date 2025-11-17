@@ -91,12 +91,12 @@ void initialize_game() {
   bird.jumpStrength = -3;
   
   // Initialize pipes
-  for (int i = 0; i < NUM_PIPES; i++) {
-    pipes[i].x = SCREEN_WIDTH + (i * 65) + random(-10, 10);
-    pipes[i].gapY = random(25, 48);
-    pipes[i].width = PIPE_WIDTH;
-    pipes[i].gapSize = PIPE_GAP_SIZE;
-    pipes[i].passed = false;
+  for (int I = 0; I < NUM_PIPES; I++) {
+    pipes[I].x = SCREEN_WIDTH + (I * 65) + random(-10, 10);
+    pipes[I].gapY = random(25, 48);
+    pipes[I].width = PIPE_WIDTH;
+    pipes[I].gapSize = PIPE_GAP_SIZE;
+    pipes[I].passed = false;
   }
 }
 
@@ -146,24 +146,24 @@ void Update_Bird() {
 
 // ===== PIPE MANAGEMENT =====
 void update_Pipes() {
-  for (int i = 0; i < NUM_PIPES; i++) {
-    pipes[i].x -= pipeSpeed;
+  for (int I = 0; I < NUM_PIPES; I++) {
+    pipes[I].x -= pipeSpeed;
     
     // Recycle pipe when off-screen
-    if (pipes[i].x < -pipes[i].width) {
+    if (pipes[I].x < -pipes[I].width) {
       // Find rightmost pipe
       int maxX = -100;
-      for (int j = 0; j < NUM_PIPES; j++) {
-        if (pipes[j].x > maxX) {
-          maxX = pipes[j].x;
+      for (int J = 0; J < NUM_PIPES; J++) {
+        if (pipes[J].x > maxX) {
+          maxX = pipes[J].x;
         }
       }
       
       // Reset pipe with random spacing
       int spacing = random(35, 55);
-      pipes[i].x = maxX + spacing;
-      pipes[i].gapY = random(22, 50);
-      pipes[i].passed = false;
+      pipes[I].x = maxX + spacing;
+      pipes[I].gapY = random(22, 50);
+      pipes[I].passed = false;
     }
   }
 }
