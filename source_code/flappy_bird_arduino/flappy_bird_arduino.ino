@@ -82,6 +82,7 @@ void loop() {
     handle_user_input();
     update_Pipes();  
     draw_game();
+    Update_Bird();
     delay(30); 
   }
 }
@@ -91,8 +92,9 @@ void handle_user_input() {
   
   if(action_state == LOW) {
     Serial.println("Button Pressed");
-   
+    bird.Velocity = bird.jumpStrength;
   }
+
 }
 
 void Draw_Pipe(Pipe &p) {
@@ -132,6 +134,35 @@ void update_Pipes() {
 
 void Draw_Bird() {
   u8g2.drawXBM(bird.x - 4, bird.y - 4, 14, 12, bird_bits);
+}
+
+void Update_Bird(){
+  bool action_button_pressed = handle_user_input();
+  Serial.println(action_button_pressed);
+  if(bird.Velocity <= 8){
+    bird.Velocity+=gravity;
+  }
+
+  if(bird.y > 64 - 6) {
+    bird.y = 64 - 6;
+    game_over = true;
+  }
+
+  if(bird.y <8 +6 ){
+    bird.y = 8 + 6;
+    game_over=true;
+  }
+}
+
+void check_collision(){
+  //Drawing a box around the bird for collision detection
+  int birdLeft = bird.x - 6;
+  int birdRight = bird.x + 6;
+  int birdTop = bird.y - 6;
+  int birdBottom = bird.y + 6;
+
+
+
 }
 
 void draw_game() {
