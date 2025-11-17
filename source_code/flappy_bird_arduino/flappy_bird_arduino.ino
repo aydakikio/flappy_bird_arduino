@@ -26,7 +26,7 @@ struct Pipe {
 };
 
 //Pipe settings
-int pipeSpeed = 2;
+int pipeSpeed = 1;
 Pipe pipes[3];
 int lastPipeX = 0;
 
@@ -74,16 +74,31 @@ void setup() {
   bird.x=30;
   bird.y=32;
   bird.Velocity=0;
-  bird.jumpStrength=-6;
+  bird.jumpStrength=-3;
 }
 
 void loop() {
   if(!game_over) {
     handle_user_input();
-    update_Pipes();  
+    Update_Bird(); 
+    update_Pipes();
+    Update_Score();
+
+    Update_Difficulty();
     draw_game();
-    Update_Bird();
+
+    if(check_collision()){
+      game_over=true;
+    }
     delay(30); 
+  }else {
+    draw_gameover_page();
+    if (digitalRead(BTN_ACTION)== LOW) {
+      
+      restart_game();
+
+      delay(500);
+    }
   }
 }
 
@@ -91,10 +106,8 @@ void handle_user_input() {
   int action_state = digitalRead(BTN_ACTION);
   
   if(action_state == LOW) {
-    Serial.println("Button Pressed");
     bird.Velocity = bird.jumpStrength;
   }
-
 }
 
 void Draw_Pipe(Pipe &p) {
@@ -137,32 +150,99 @@ void Draw_Bird() {
 }
 
 void Update_Bird(){
-  bool action_button_pressed = handle_user_input();
-  Serial.println(action_button_pressed);
-  if(bird.Velocity <= 8){
-    bird.Velocity+=gravity;
+  // Apply gravity
+  bird.Velocity += gravity;
+  
+  // Limit max fall speed to 2 (keep it slow like you want)
+  if(bird.Velocity > 2){
+    bird.Velocity = 2;
   }
+  
+  // ALWAYS update position (moved outside the if)
+  bird.y += bird.Velocity;
 
+  // Check ground collision
   if(bird.y > 64 - 6) {
     bird.y = 64 - 6;
     game_over = true;
   }
 
-  if(bird.y <8 +6 ){
+  // Check ceiling collision
+  if(bird.y < 8 + 6){
     bird.y = 8 + 6;
     game_over=true;
   }
 }
 
-void check_collision(){
+bool check_collision(){
   //Drawing a box around the bird for collision detection
-  int birdLeft = bird.x - 6;
-  int birdRight = bird.x + 6;
-  int birdTop = bird.y - 6;
-  int birdBottom = bird.y + 6;
+  int bird_collision_box_Left_side = bird.x - 7;
+  int bird_collision_box_Right_side = bird.x + 7;
+  int bird_collision_box_Top_side = bird.y - 6;
+  int bird_collision_box_Bottom_side = bird.y + 6;
+
+  //Check the collision with pipes
+  for (int I =0; I<3 ; I++) {
+    
+    if (bird_collision_box_Right_side>pipes[I].x && bird_collision_box_Left_side<pipes[I].x + pipes[I].width) {
+        //Top pipe collision
+        int top_pipe_bottom = pipes[I].gapY - pipes[I].gapSize/2;
+        if (bird_collision_box_Top_side< top_pipe_bottom) {
+          return true;
+        }
+
+        //Buttom pipe collision
+        int bottom_pipe_top= pipes[I].gapY + pipes[I].gapSize/2;
+        if (bird_collision_box_Bottom_side > bottom_pipe_top) {
+          return true;
+        }
+      
+    }
+  }
+
+  return false;
+
+}
 
 
+void restart_game(){
+  //Reset game state
+  game_over=false;
+  score=0;
+  pipeSpeed=1;
 
+  // Reset bird
+  bird.x = 30;
+  bird.y = 32;
+  bird.Velocity = 0;
+
+  // Reset pipes
+  for(int i = 0; i < 3; i++) {
+    pipes[i].x = 128 + (i * 65) + random(-10, 10);
+    pipes[i].gapY = random(25, 48);
+    pipes[i].width = 10;
+    pipes[i].gapSize = 25;
+    pipes[i].passed = false;
+  }
+  
+}
+
+void Update_Score(){
+  for (int I = 0 ; I<3 ; I++) {
+    if(!pipes[I].passed && pipes[I].x + pipes[I].width<bird.x){
+      pipes[I].passed=true;
+      score++;
+    }
+  }
+}
+
+void Update_Difficulty(){
+  // Every 10 points increase speed
+  if(score >= 10 && score < 20) pipeSpeed = 2;
+  else if(score >= 20 && score < 30) pipeSpeed = 3;
+  else if(score >= 30 && score < 40) pipeSpeed = 4;
+  else if(score >= 40) pipeSpeed = 5;
+  else if(score < 10) pipeSpeed = 1;
 }
 
 void draw_game() {
@@ -170,7 +250,7 @@ void draw_game() {
   do { 
     // Draw score
     u8g2.setFont(u8g2_font_5x7_mf);
-    u8g2.drawStr(0, 6, "Score:");
+    u8g2.drawStr(0, 6, "Score: ");
     u8g2.setCursor(30, 6);
     u8g2.print(score);
     
@@ -186,4 +266,24 @@ void draw_game() {
     Draw_Bird();
     
   } while(u8g2.nextPage());
+}
+
+void draw_gameover_page(){
+  u8g2.firstPage();
+  do {
+    // Display "GAME OVER" text
+    u8g2.setFont(u8g2_font_10x20_tf);
+    u8g2.drawStr(20, 30 , "GAME OVER");
+
+    // Display final score
+    u8g2.setFont(u8g2_font_7x13_mf);
+    u8g2.drawStr(35, 45, "Score: ");
+    u8g2.setCursor(78, 45);
+    u8g2.print(score);
+    
+    // Display restart instruction
+    u8g2.setFont(u8g2_font_5x7_mf);
+    u8g2.drawStr(20, 58, "Press action key");
+
+  }while (u8g2.nextPage());
 }
