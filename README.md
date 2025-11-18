@@ -1,10 +1,15 @@
 # Flappy Bird Game 
 
+<p align="center">
+  <img src="./Assets/gameplay.gif" alt="animated" width="90%" height="90%" />
+</p>
+
+---
+
 ## Project Overview
 
 A complete Flappy Bird clone implementation for Arduino microcontrollers using the U8g2 graphics library and SH1106 OLED display (128x64 pixels).
 
----
 ---
 
 ## Installation
@@ -23,11 +28,7 @@ A complete Flappy Bird clone implementation for Arduino microcontrollers using t
 #### Step 1: Download the Code
 1. Visit the [Releases page](https://github.com/aydakikio/flappy_bird_arduino/releases)
 2. Click on the latest release
-3. Download the **Source code (zip)** file
-4. Extract the ZIP to your Arduino projects folder
-   - Windows: `Documents\Arduino\`
-   - Mac: `~/Documents/Arduino/`
-   - Linux: `~/Arduino/`
+3. Download the **flappy_bird_arduino.ino** file
 
 #### Step 2: Install U8g2 Library
 1. Open **Arduino IDE**
@@ -39,7 +40,7 @@ A complete Flappy Bird clone implementation for Arduino microcontrollers using t
 
 #### Step 3: Open the Project
 1. In Arduino IDE, go to **File → Open**
-2. Navigate to the extracted folder
+2. Navigate to the project folder
 3. Select `flappy_bird.ino`
 4. The code will open in the IDE
 
@@ -120,7 +121,10 @@ After successful upload, you should see:
   - Button → Pin 12 (INPUT_PULLUP)
 
 ### Wiring Diagram
-Draw diagram 
+<p align="center">
+  <img src="./Assets/wiring_diagram.png" alt="animated" width="40%" height="40%" />
+</p>
+
 ---
 
 ## Software Architecture
