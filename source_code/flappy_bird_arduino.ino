@@ -1,7 +1,7 @@
 #include <U8g2lib.h>
 
 // ===== HARDWARE CONFIGURATION =====
-U8G2_SH1106_128X64_NONAME_2_HW_I2C u8g2(U8G2_R0, -1, A5, A4);
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, -1, A5, A4);
 #define BTN_ACTION 12
 
 // ===== DISPLAY CONSTANTS =====
@@ -242,44 +242,44 @@ void Draw_Bird() {
 
 // ===== RENDERING GAME SCENES =====
 void draw_game() {
-  u8g2.firstPage();
-  do {
-    // Draw score
-    u8g2.setFont(u8g2_font_5x7_mf);
-    u8g2.drawStr(0, 6, "Score: ");
-    u8g2.setCursor(35, 6);
-    u8g2.print(score);
+
+  u8g2.clearBuffer();
+  // Draw score
+  u8g2.setFont(u8g2_font_5x7_mf);
+  u8g2.drawStr(0, 6, "Score: ");
+  u8g2.setCursor(35, 6);
+  u8g2.print(score);
     
-    // Draw game border
-    u8g2.drawFrame(0, GAME_AREA_TOP, SCREEN_WIDTH, GAME_AREA_HEIGHT);
+  // Draw game border
+  u8g2.drawFrame(0, GAME_AREA_TOP, SCREEN_WIDTH, GAME_AREA_HEIGHT);
     
-    // Draw pipes
-    for (int i = 0; i < NUM_PIPES; i++) {
-      Draw_Pipe(pipes[i]);
-    }
+  // Draw pipes
+  for (int i = 0; i < NUM_PIPES; i++) {
+    Draw_Pipe(pipes[i]);
+  }
     
-    // Draw bird
-    Draw_Bird();
+  // Draw bird
+  Draw_Bird();
     
-  } while (u8g2.nextPage());
+  u8g2.sendBuffer();
 }
 
 void draw_gameover_page() {
-  u8g2.firstPage();
-  do {
-    // Game Over title
-    u8g2.setFont(u8g2_font_10x20_tf);
-    u8g2.drawStr(10, 25, "GAME OVER");
+  u8g2.clearBuffer();
+  
+  // Game Over title
+  u8g2.setFont(u8g2_font_10x20_tf);
+  u8g2.drawStr(10, 25, "GAME OVER");
     
-    // Final score
-    u8g2.setFont(u8g2_font_7x13_mf);
-    u8g2.drawStr(30, 42, "Score: ");
-    u8g2.setCursor(75, 42);
-    u8g2.print(score);
+  // Final score
+  u8g2.setFont(u8g2_font_7x13_mf);
+  u8g2.drawStr(30, 42, "Score: ");
+  u8g2.setCursor(75, 42);
+  u8g2.print(score);
     
-    // Restart instruction
-    u8g2.setFont(u8g2_font_5x7_mf);
-    u8g2.drawStr(15, 58, "Press to Restart");
-    
-  } while (u8g2.nextPage());
+  // Restart instruction
+  u8g2.setFont(u8g2_font_5x7_mf);
+  u8g2.drawStr(15, 58, "Press to Restart");
+
+  u8g2.sendBuffer();
 }
