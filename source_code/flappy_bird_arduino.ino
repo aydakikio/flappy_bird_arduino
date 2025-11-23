@@ -1,8 +1,15 @@
 #include <U8g2lib.h>
+#include <EEPROM.h>
 
 // ===== HARDWARE CONFIGURATION =====
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, -1, A5, A4);
 #define BTN_ACTION 12
+#define BTN_RESET 4
+
+// ===== EEPROM CONFIGURATION =====
+#define EEPROM_HIGH_SCORE_ADDR 0
+#define EEPROM_MAGIC_ADDR 2
+#define EEPROM_MAGIC_VALUE 42
 
 // ===== DISPLAY CONSTANTS =====
 #define SCREEN_WIDTH 128
@@ -37,13 +44,15 @@ Bird bird;
 Pipe pipes[NUM_PIPES];
 
 // ===== GAME STATE =====
+bool new_high_score=0;
+int high_score = 0;
 int score = 0;
 bool game_over = false;
-int pipeSpeed = 1;
-int gravity = 1;
+uint8_t pipeSpeed = 1;
+const uint8_t gravity = 1;
 
 // ===== BIRD SPRITE (14x12) =====
-const unsigned char bird_bits[] = {
+const unsigned char bird_bits[] PROGMEM= {
   0x00, 0x00, 0x90, 0x03, 0x88, 0x04, 0x4E, 0x0C, 0x11, 0x0C, 0xA1, 0x08,
   0x21, 0x1F, 0x92, 0x3F, 0xCC, 0x1F, 0x8C, 0x1F, 0xF8, 0x0F, 0x00, 0x00,
 };
@@ -59,7 +68,12 @@ void restart_game();
 void setup() {
   u8g2.begin();
 
+  //pin configuration 
   pinMode(BTN_ACTION, INPUT_PULLUP);
+  pinMode(BTN_RESET , INPUT_PULLUP);
+
+  load_high_score();
+
   randomSeed(analogRead(A0));
   
   initialize_game();
@@ -67,6 +81,11 @@ void setup() {
 
 // ===== MAIN GAME LOOP =====
 void loop() {
+  if(digitalRead(4)==LOW){
+    reset_high_score();
+    delay(30);
+  }
+
   if (!game_over) {
     handle_user_input();
     update_game_state();
@@ -174,6 +193,12 @@ void Update_Score() {
     if (!pipes[I].passed && pipes[I].x + pipes[I].width < bird.x) {
       pipes[I].passed = true;
       score++;
+      if(score>high_score){
+        high_score= score;
+        new_high_score = true;
+
+        save_high_score();
+      }
     }
   }
 }
@@ -215,8 +240,32 @@ bool check_collision() {
   return false;
 }
 
+// ===== EEPROM FUNCTIONS =====
+void load_high_score() {
+  byte magic = EEPROM.read(EEPROM_MAGIC_ADDR);
+  
+  if (magic != EEPROM_MAGIC_VALUE) {
+    high_score = 0;
+    EEPROM.write(EEPROM_MAGIC_ADDR, EEPROM_MAGIC_VALUE);
+    EEPROM.put(EEPROM_HIGH_SCORE_ADDR, high_score);
+  } else {
+    EEPROM.get(EEPROM_HIGH_SCORE_ADDR, high_score);
+  }
+}
+
+void save_high_score() {
+  EEPROM.put(EEPROM_HIGH_SCORE_ADDR, high_score);
+}
+
+void reset_high_score() {
+  high_score = 0;
+  new_high_score = false;
+  EEPROM.put(EEPROM_HIGH_SCORE_ADDR, high_score);
+}
+
 // ===== RESTART =====
 void restart_game() {
+  new_high_score=false;
   game_over = false;
   score = 0;
   pipeSpeed = 1;
@@ -237,19 +286,24 @@ void Draw_Pipe(Pipe &p) {
 }
 
 void Draw_Bird() {
-  u8g2.drawXBM(bird.x - 7, bird.y - 6, 14, 12, bird_bits);
+  u8g2.drawXBMP(bird.x - 7, bird.y - 6, 14, 12, bird_bits);
 }
 
 // ===== RENDERING GAME SCENES =====
 void draw_game() {
-
   u8g2.clearBuffer();
+
   // Draw score
   u8g2.setFont(u8g2_font_5x7_mf);
   u8g2.drawStr(0, 6, "Score: ");
   u8g2.setCursor(35, 6);
   u8g2.print(score);
-    
+  
+  //Draw high score
+  u8g2.drawStr(70, 6, "Best: ");
+  u8g2.setCursor(95, 6);
+  u8g2.print(high_score);
+  
   // Draw game border
   u8g2.drawFrame(0, GAME_AREA_TOP, SCREEN_WIDTH, GAME_AREA_HEIGHT);
     
@@ -268,18 +322,22 @@ void draw_gameover_page() {
   u8g2.clearBuffer();
   
   // Game Over title
-  u8g2.setFont(u8g2_font_10x20_tf);
-  u8g2.drawStr(10, 25, "GAME OVER");
-    
-  // Final score
   u8g2.setFont(u8g2_font_7x13_mf);
-  u8g2.drawStr(30, 42, "Score: ");
-  u8g2.setCursor(75, 42);
+  u8g2.drawStr(31, 20, "GAME OVER");
+    
+  u8g2.setFont(u8g2_font_5x7_mf);
+  
+  if (new_high_score) {
+    u8g2.drawStr(24, 40, "New high score!");
+  }
+  
+  // Final score
+  u8g2.drawStr(40, 52, "Score: ");
+  u8g2.setCursor(75, 52);
   u8g2.print(score);
     
   // Restart instruction
-  u8g2.setFont(u8g2_font_5x7_mf);
-  u8g2.drawStr(15, 58, "Press to Restart");
+  u8g2.drawStr(20, 62, "Press any button...");
 
   u8g2.sendBuffer();
 }
