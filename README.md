@@ -143,7 +143,7 @@ After successful upload, you should see:
 
 ### Wiring Diagram
 <p align="center">
-  <img src="./Assets/wiring_diagram.png" alt="animated" width="40%" height="40%" />
+  <img src="./Assets/wiring_diagram.png" alt="animated" width="80%" height="80%" />
 </p>
 
 ---
